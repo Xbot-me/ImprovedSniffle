@@ -1,8 +1,8 @@
-# 🚀 Trend Radar — AI-Powered Developer Intelligence Agent
+# 🔭 StackScout — AI-Powered Developer Intelligence Agent
 
-Trend Radar is an AI-powered technology trend monitoring system that discovers what's gaining attention across **Hacker News, GitHub, Dev.to, and RSS feeds**, analyzes relevance against your personal technology stack, detects breakout trends, and delivers high-signal developer insights directly to Telegram.
+StackScout is an AI-powered technology trend monitoring system that discovers what's gaining attention across **Hacker News, GitHub, Dev.to, and RSS feeds**, analyzes relevance against your personal technology stack, detects breakout trends, and delivers high-signal developer insights directly to Telegram.
 
-Instead of endlessly scrolling through tech news, Trend Radar helps developers, founders, and engineers discover **important emerging technologies, tools, frameworks, and industry movements before they become mainstream**.
+Instead of endlessly scrolling through tech news, StackScout helps developers, founders, and engineers discover **important emerging technologies, tools, frameworks, and industry movements before they become mainstream**.
 
 > Find what is trending. Understand why it matters. Save ideas worth building.
 
@@ -25,7 +25,7 @@ No paid APIs required.
 
 ### 🎯 Personalized Technology Matching
 
-Trend Radar scores content based on your own interests and technology stack.
+StackScout scores content based on your own interests and technology stack.
 
 ```python
 STACK_KEYWORDS = [
@@ -119,11 +119,11 @@ flowchart TD
 
 ---
 
-## Why Trend Radar?
+## Why StackScout?
 
 The internet produces thousands of developer updates every day. Most tools answer *"what happened?"*
 
-Trend Radar answers *"what is gaining momentum, and why should I care?"*
+StackScout answers *"what is gaining momentum, and why should I care?"*
 
 It helps you:
 
@@ -164,7 +164,7 @@ If you don't want AI explanations:
 ENABLE_AI_ANGLES = False
 ```
 
-Trend Radar works without AI.
+StackScout works without AI.
 
 ### 3. Local Setup
 
@@ -205,7 +205,7 @@ python notify_telegram.py
 
 ## ☁️ Automated Deployment with GitHub Actions
 
-Trend Radar can run completely serverless using GitHub Actions.
+StackScout can run completely serverless using GitHub Actions.
 
 ```mermaid
 flowchart LR
@@ -266,7 +266,7 @@ VELOCITY_MIN_ABSOLUTE_DELTA
 ## 📁 Project Structure
 
 ```
-trend-radar/
+stackscout/
 ├── collector.py          # Fetches, scores and stores trends
 ├── notify_telegram.py    # Sends ranked notifications
 ├── config.py             # Keywords and source configuration
