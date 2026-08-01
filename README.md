@@ -1,98 +1,304 @@
-# Trend Radar
+# 🚀 Trend Radar — AI-Powered Developer Intelligence Agent
 
-Trend collector: pulls what's getting attention across Hacker News, GitHub,
-Dev.to, and RSS feeds, scores it against your own stack keywords, detects
-items that are suddenly accelerating, optionally adds a one-line AI "why
-this matters to you" angle, and pushes items to Telegram with a tap-to-save
-button.
+Trend Radar is an AI-powered technology trend monitoring system that discovers what's gaining attention across **Hacker News, GitHub, Dev.to, and RSS feeds**, analyzes relevance against your personal technology stack, detects breakout trends, and delivers high-signal developer insights directly to Telegram.
 
-This is Stage 1-2 of the bigger content-agent idea — get the "what's
-trending + does it overlap with what I build" signal working and trustworthy
-before adding AI writing/posting on top.
+Instead of endlessly scrolling through tech news, Trend Radar helps developers, founders, and engineers discover **important emerging technologies, tools, frameworks, and industry movements before they become mainstream**.
 
-## v2 additions
+> Find what is trending. Understand why it matters. Save ideas worth building.
 
-- **Velocity detection** — if an item you already saw gets re-sent because
-  its score spiked 50%+ (and by a meaningful absolute amount, to ignore
-  tiny-number noise), it's flagged `🚀 BREAKOUT` and jumps to the top of
-  the queue. Config: `VELOCITY_GROWTH_THRESHOLD`, `VELOCITY_MIN_ABSOLUTE_DELTA`.
-- **AI angles (Gemini)** — a single batched call per run, capped at the top
-  `AI_ANGLE_CANDIDATE_COUNT` (15 by default) pending items, generates a
-  one-line "why this matters to you" note. Uses Flash-Lite by default for
-  cost; override `GEMINI_MODEL` env var if you want Pro's quality instead
-  (at meaningfully higher per-call cost — Pro is roughly 10-20x Flash-Lite's
-  token price, worth it only if Flash-Lite's angles feel too generic).
-- **Save button** — each item now sends as its own Telegram message with a
-  "💾 Save" inline button. Tapping it marks the item `saved=1` in the DB
-  and edits the message to show "✅ Saved". No server needed — the next
-  collector run polls Telegram's `getUpdates` for any taps since the last
-  check, using a stored offset so nothing's processed twice.
+---
 
-## Setup
+## ✨ Features
 
-### 1. Create a Telegram bot
-1. Message **@BotFather** on Telegram → `/newbot` → follow prompts → copy the token
-2. Send any message to your new bot
-3. Visit `https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates` in a browser
-4. Find `"chat":{"id": ...}` in the JSON — that's your chat ID
+### 🔎 Multi-Source Trend Collection
 
-### 2. Get a Gemini API key (for AI angles)
-Grab a key from Google AI Studio. Set `ENABLE_AI_ANGLES = False` in
-`config.py` if you'd rather skip this and stay at zero AI cost.
+Automatically collects trending developer content from:
 
-### 3. Local test run
-```bash
-pip install -r requirements.txt
-export TELEGRAM_BOT_TOKEN="your-token"
-export TELEGRAM_CHAT_ID="your-chat-id"
-export GEMINI_API_KEY="your-gemini-key"     # optional, skip if AI angles disabled
-python collector.py         # fetches + stores new items, generates AI angles
-python notify_telegram.py   # processes saves, sends pending items
+- 📰 Hacker News
+- 🐙 GitHub Trending / GitHub Search API
+- ✍️ Dev.to
+- 📡 Custom RSS feeds
+
+No paid APIs required.
+
+---
+
+### 🎯 Personalized Technology Matching
+
+Trend Radar scores content based on your own interests and technology stack.
+
+```python
+STACK_KEYWORDS = [
+    "golang",
+    "docker",
+    "kubernetes",
+    "llm",
+    "ai agents",
+    "react",
+    "postgres"
+]
 ```
 
-Without the env vars set, `notify_telegram.py` prints what it *would* send
-instead of failing — safe to test dry.
+A trending Kubernetes article or AI agent framework receives a higher relevance score than unrelated news.
 
-### 4. Deploy on GitHub Actions (recommended)
-1. Push this repo to GitHub
-2. Repo → Settings → Secrets and variables → Actions → add:
-   - `TELEGRAM_BOT_TOKEN`
-   - `TELEGRAM_CHAT_ID`
-   - `GEMINI_API_KEY` (skip if AI angles disabled)
-3. The workflow (`.github/workflows/trend-radar.yml`) runs every 4 hours
-   automatically, or trigger manually from the Actions tab
-   ("Run workflow" button)
+---
 
-The SQLite DB persists across runs via GitHub Actions dynamic caching (`actions/cache/restore` and `actions/cache/save`), so you won't get re-notified about the same item twice.
+### 🚀 Breakout Trend Detection
 
-## Customizing
+Detects when previously discovered content suddenly gains momentum.
 
-- **`config.py`** — edit `STACK_KEYWORDS` to match what you actually build.
-  This is the whole "relevance" signal for now — no AI needed.
-- **`config.py`** — edit `RSS_FEEDS` to add/remove feeds.
-- **Cron schedule** — edit the `cron:` line in the workflow file
-  (currently every 4 hours).
+```
+🚀 BREAKOUT
 
-## What's NOT in this version (by design)
+Project:
+New open-source AI agent framework
 
-- No AI writing/posting yet — this is pure signal collection + notification.
-- No X/Twitter source (their API isn't free) — GitHub, HN, Dev.to, RSS cover
-  the free/practical ground.
+Why:
+Score increased by 70%
+GitHub stars accelerating
+High developer engagement
+```
 
+Velocity detection helps identify technologies that are rapidly gaining adoption.
 
-## Project structure
+---
+
+### 🤖 AI-Powered Trend Explanations
+
+Optional Gemini-powered analysis generates a short explanation of *"why does this matter to you?"*
+
+```
+LangGraph update
+
+AI Angle:
+"This could simplify building production-ready AI agent
+workflows using your existing Python stack."
+```
+
+Uses efficient Gemini Flash-Lite models to minimize cost.
+
+---
+
+### 📲 Telegram Intelligence Feed
+
+Receive personalized trend alerts directly in Telegram.
+
+- Ranked trend notifications
+- One-click save button
+- Duplicate prevention
+- Persistent history
+- Automated scheduled updates
+
+```
+🔥 AI Agent Framework Trending
+
+Score: 92/100
+
+Why:
+Matches your AI + Go interests
+
+💾 Save
+```
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart TD
+    A[Data Sources] --> B[Trend Collector]
+    A1[Hacker News] --> A
+    A2[GitHub] --> A
+    A3[Dev.to] --> A
+    A4[RSS Feeds] --> A
+    B --> C[Relevance Scoring]
+    C --> D[Velocity Detection]
+    D --> E[AI Analysis - Optional]
+    E --> F[Telegram Alerts]
+```
+
+---
+
+## Why Trend Radar?
+
+The internet produces thousands of developer updates every day. Most tools answer *"what happened?"*
+
+Trend Radar answers *"what is gaining momentum, and why should I care?"*
+
+It helps you:
+
+- Discover new technologies
+- Find open-source projects early
+- Track developer ecosystem changes
+- Generate content ideas
+- Identify startup opportunities
+- Stay ahead of engineering trends
+
+---
+
+## 🚀 Installation
+
+### 1. Create a Telegram Bot
+
+1. Open Telegram
+2. Message `@BotFather`
+3. Run:
+   ```
+   /newbot
+   ```
+4. Copy your bot token
+5. Send any message to your new bot
+6. Open:
+   ```
+   https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates
+   ```
+7. Copy your chat ID
+
+### 2. Set Up Gemini AI (Optional)
+
+Create a Gemini API key from Google AI Studio.
+
+If you don't want AI explanations:
+
+```python
+ENABLE_AI_ANGLES = False
+```
+
+Trend Radar works without AI.
+
+### 3. Local Setup
+
+Clone the repository:
+
+```bash
+git clone https://github.com/Xbot-me/ImprovedSniffle.git
+cd ImprovedSniffle
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Configure environment variables:
+
+```bash
+export TELEGRAM_BOT_TOKEN="your-token"
+export TELEGRAM_CHAT_ID="your-chat-id"
+export GEMINI_API_KEY="your-key"
+```
+
+Run the collector:
+
+```bash
+python collector.py
+```
+
+Send notifications:
+
+```bash
+python notify_telegram.py
+```
+
+---
+
+## ☁️ Automated Deployment with GitHub Actions
+
+Trend Radar can run completely serverless using GitHub Actions.
+
+```mermaid
+flowchart LR
+    A[Every 4 hours] --> B[GitHub Actions]
+    B --> C[Collect trends]
+    C --> D[Analyze scores]
+    D --> E[Generate AI insights]
+    E --> F[Send Telegram alerts]
+```
+
+Required GitHub Secrets:
+
+```
+TELEGRAM_BOT_TOKEN
+TELEGRAM_CHAT_ID
+GEMINI_API_KEY
+```
+
+SQLite data persistence is handled through GitHub Actions caching.
+
+---
+
+## ⚙️ Configuration
+
+Customize your intelligence feed:
+
+**Technology Stack Keywords** — edit `config.py`:
+
+```python
+STACK_KEYWORDS = [
+    "AI",
+    "LLM",
+    "Go",
+    "Docker",
+    "React",
+    "Cloud",
+    "Open Source"
+]
+```
+
+**RSS Sources** — add your favorite feeds:
+
+```python
+RSS_FEEDS = [
+    "https://example.com/feed"
+]
+```
+
+**Trend Velocity Settings** — control breakout detection:
+
+```
+VELOCITY_GROWTH_THRESHOLD
+VELOCITY_MIN_ABSOLUTE_DELTA
+```
+
+---
+
+## 📁 Project Structure
 
 ```
 trend-radar/
-├── collector.py              # main entrypoint — fetch, score, store
-├── notify_telegram.py        # sends ranked digest, marks items notified
-├── config.py                 # your keywords, feeds, settings
-├── schema.sql                # SQLite schema
-├── sources/
-│   ├── hackernews.py         # HN Firebase API (free, no auth)
-│   ├── github_trending.py    # GitHub Search API (free, official)
-│   ├── devto.py               # Dev.to public API (free, no auth)
-│   └── rss_feeds.py           # generic RSS/Atom polling
-└── .github/workflows/
-    └── trend-radar.yml        # scheduled runner
+├── collector.py          # Fetches, scores and stores trends
+├── notify_telegram.py    # Sends ranked notifications
+├── config.py             # Keywords and source configuration
+├── schema.sql             # SQLite database schema
+└── sources/
+    ├── hackernews.py      # Hacker News API integration
+    ├── github_trending.py # GitHub trend collection
+    ├── devto.py           # Dev.to integration
+    └── rss_feeds.py       # RSS/Atom feed collector
 ```
+
+---
+
+## 🛣️ Roadmap
+
+Future versions may include:
+
+- AI-generated technical summaries
+- Automatic blog post generation
+- LinkedIn/X content creation
+- Startup idea detection
+- Personalized newsletters
+- Web dashboard
+- More data sources
+- Multi-user support
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome. Ideas, improvements, new data sources, and AI workflows are encouraged.
+
+## 📄 License
+
+MIT License
