@@ -58,7 +58,7 @@ def score_relevance(title: str) -> tuple[int, list[str]]:
         if not kw.isalnum():
             if kw in title_lower:
                 matched.append(kw)
-        elif re.search(r"\\b" + re.escape(kw) + r"\\b", title_lower):
+        elif re.search(r"\b" + re.escape(kw) + r"\b", title_lower):
             matched.append(kw)
     return len(matched), matched
 
