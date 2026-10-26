@@ -1,12 +1,5 @@
 """
-Generates a one-line "why this matters to you" angle for a small batch of
-candidate items using Gemini. This is the only AI cost in the whole pipeline
-— one batched call per run, capped at config.AI_ANGLE_CANDIDATE_COUNT items,
-using a cheap model by default (Flash-Lite).
-
-Cost sanity check: ~15 items * ~150 tokens each in, ~15 * ~30 tokens out
-per run ≈ 2.5K in / 450 out. At Flash-Lite rates ($0.10/$0.40 per M tokens)
-that's a fraction of a cent per run, a few cents a day at most.
+Generates a short, personalized angle for trending items using Gemini.
 """
 
 from __future__ import annotations
@@ -14,7 +7,6 @@ from __future__ import annotations
 import json
 import re
 import requests
-
 
 import config
 
@@ -24,7 +16,7 @@ GEMINI_URL = (
 
 
 def _build_prompt(items: list[dict]) -> str:
-    numbered = "\n".join(
+    numbered = "\\n".join(
         f"{i}. [{item['source']}] {item['title']}"
         for i, item in enumerate(items)
     )
@@ -32,10 +24,9 @@ def _build_prompt(items: list[dict]) -> str:
 
 Their background: {config.USER_PROFILE_BLURB}
 
-For EACH numbered item below, write ONE short punchy sentence (under 20 words)
-on why it might matter to THIS person specifically, or what angle they could
-write about if it overlaps with their work. If an item genuinely has no
-plausible connection to their background, say "No clear angle" for it.
+For EACH numbered item below, write ONE short sentence (under 20 words)
+on why it might matter to THIS person or what angle they could write about.
+If there is genuinely no plausible connection, say "No clear angle".
 
 Items:
 {numbered}
@@ -48,28 +39,26 @@ One object per item above, in the same order.
 
 
 def _extract_json(text: str) -> str:
-    """Extract JSON array string, stripping markdown code fences or conversational text."""
+    """Extract a JSON array, including when wrapped in markdown fences."""
     text = text.strip()
-    match = re.search(r"\[.*\]", text, re.DOTALL)
+    match = re.search(r"\\[.*\\]", text, re.DOTALL)
     if match:
         return match.group(0)
-    text = re.sub(r"^```(?:json)?\s*", "", text)
-    text = re.sub(r"\s*```$", "", text)
+    text = re.sub(r"^```(?:json)?\\s*", "", text)
+    text = re.sub(r"\\s*```$", "", text)
     return text.strip()
 
 
 def generate_angles(items: list[dict]) -> dict[str, str]:
     """
-    Takes a list of item dicts (must have 'id', 'source', 'title').
-    Returns {item_id: angle_text} for whichever items got a usable response.
-    Returns {} on any failure — callers should treat AI angles as optional.
+    Return usable model responses. Missing results are omitted so callers can
+    retry them; explicit "No clear angle" responses count as completed results.
     """
     if not config.ENABLE_AI_ANGLES or not config.GEMINI_API_KEY or not items:
         return {}
 
     candidates = items[: config.AI_ANGLE_CANDIDATE_COUNT]
     prompt = _build_prompt(candidates)
-
     url = GEMINI_URL.format(model=config.GEMINI_MODEL)
     try:
         resp = requests.post(
@@ -114,8 +103,6 @@ def generate_angles(items: list[dict]) -> dict[str, str]:
         try:
             idx = int(idx_raw)
         except (ValueError, TypeError):
-            continue
-        if angle.strip().lower().startswith("no clear angle"):
             continue
         if 0 <= idx < len(candidates):
             angles[candidates[idx]["id"]] = angle.strip()
