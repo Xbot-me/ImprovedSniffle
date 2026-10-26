@@ -24,7 +24,7 @@ Relevance scoring is currently keyword overlap, not semantic search. GitHub disc
 | Dev.to | Public articles API | Public reactions |
 | RSS/Atom | Configured feeds parsed by Feedparser | No engagement score |
 
-Sources can be enabled or disabled in `config.py`. The default RSS list includes Hacker News and Dev.to feeds as well, so the same story may appear through more than one source under different IDs.
+Sources can be enabled or disabled in `config.py`. The default RSS list overlaps with Hacker News and Dev.to. Collection now drops exact same-URL duplicates within a run, though duplicate rows from earlier runs are not automatically removed.
 
 ## Requirements
 
@@ -81,7 +81,7 @@ Send the pending digest and process Telegram Save-button callbacks:
 python notify_telegram.py
 ```
 
-Run the collector before the notifier. The collector initializes the database schema; the notifier expects that schema to exist. The current schema setup uses `CREATE TABLE IF NOT EXISTS`, not versioned migrations, so an older database may need a deliberate migration before upgrading. If Telegram credentials are missing, the notifier prints the messages it would send rather than delivering them.
+Run the collector before the notifier. The collector initializes the database schema and adds known missing columns to older `items` tables before creating indexes. Existing rows are preserved; keep a backup before upgrading any important database. If Telegram credentials are missing, the notifier prints the messages it would send rather than delivering them.
 
 ## GitHub Actions
 
@@ -93,7 +93,7 @@ Add these repository Actions secrets:
 - `TELEGRAM_CHAT_ID`
 - `GEMINI_API_KEY` (optional)
 
-The workflow uses GitHub Actions cache to carry the SQLite database between runs. Cache storage is best-effort, not a durable database: cache eviction, overlapping runs, or a missing cache can affect history and duplicate prevention. For reliable long-term state, use persistent storage instead.
+The workflow serializes runs and uses GitHub Actions cache to carry the SQLite database between them. Cache storage is best-effort, not a durable database: cache eviction or a missing cache can affect history and duplicate prevention. For reliable long-term state, use persistent storage instead.
 
 ## How breakout detection works
 
@@ -108,6 +108,8 @@ For an item that has already been notified, StackScout compares its current enga
 ├── ai_ranker.py              # Optional Gemini explanations
 ├── config.py                 # Sources, keywords, and runtime settings
 ├── schema.sql                # SQLite schema
+├── tests/
+│   └── test_collector.py
 └── sources/
     ├── hackernews.py
     ├── github_trending.py
@@ -120,9 +122,9 @@ For an item that has already been notified, StackScout compares its current enga
 - Keyword matching only examines titles; it does not understand the full article or repository.
 - RSS items have no engagement score, so they are primarily ranked by keyword relevance.
 - The GitHub query finds recently created repositories with enough stars; it can miss older projects that are newly gaining attention.
-- Multiple feeds can surface the same underlying content.
+- Duplicate rows created by earlier versions are not automatically merged.
 - GitHub Actions cache is not durable storage.
-- The project does not currently provide a test suite or a persistent hosted service.
+- The regression suite currently covers AI retry behavior, relevance refresh, and legacy-schema migration.
 
 ## Contributing
 
