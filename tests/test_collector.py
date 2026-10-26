@@ -90,6 +90,9 @@ class CollectorRegressionTests(unittest.TestCase):
 
     def test_old_schema_is_upgraded_without_losing_rows(self):
         self.conn.close()
+        # setUp() creates a current-schema database. Remove it so this test
+        # can construct an actual legacy database from scratch.
+        os.remove(self.db_path)
         legacy = sqlite3.connect(self.db_path)
         legacy.execute(
             "CREATE TABLE items (id TEXT PRIMARY KEY, source TEXT NOT NULL, "
