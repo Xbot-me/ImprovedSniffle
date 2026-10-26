@@ -24,7 +24,7 @@ Relevance scoring is currently keyword overlap, not semantic search. GitHub disc
 | Dev.to | Public articles API | Public reactions |
 | RSS/Atom | Configured feeds parsed by Feedparser | No engagement score |
 
-Sources can be enabled or disabled in `config.py`. The default RSS list includes Hacker News and Dev.to feeds as well, so the same story may appear through more than one source under different IDs.
+Sources can be enabled or disabled in `config.py`. The default RSS list overlaps with Hacker News and Dev.to. Collection now drops exact same-URL duplicates within a run, though duplicate rows from earlier runs are not automatically removed.
 
 ## Requirements
 
@@ -120,7 +120,7 @@ For an item that has already been notified, StackScout compares its current enga
 - Keyword matching only examines titles; it does not understand the full article or repository.
 - RSS items have no engagement score, so they are primarily ranked by keyword relevance.
 - The GitHub query finds recently created repositories with enough stars; it can miss older projects that are newly gaining attention.
-- Multiple feeds can surface the same underlying content.
+- Duplicate rows created by earlier versions are not automatically merged.
 - GitHub Actions cache is not durable storage.
 - The regression suite currently covers AI retry behavior, relevance refresh, and legacy-schema migration.
 
