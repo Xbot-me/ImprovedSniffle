@@ -2,8 +2,14 @@ name: Trend Radar
 
 on:
   schedule:
-    - cron: "0 */4 * * *"   # every 4 hours — adjust as you like
-  workflow_dispatch: {}      # lets you trigger manually from the Actions tab
+    - cron: "0 */4 * * *"
+  workflow_dispatch: {}
+
+# Prevent concurrent runs from restoring the same SQLite snapshot and then
+# saving divergent histories.
+concurrency:
+  group: trend-radar-history
+  cancel-in-progress: false
 
 jobs:
   collect-and-notify:
@@ -18,8 +24,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # Persist the SQLite DB across runs so we don't re-notify the same items.
-      # Dynamic key with restore fallback ensures modified DB state is saved on every run.
+      # Cache is best-effort persistence, not a database. Eviction or a cache
+      # miss can still reset history and cause old items to be notified again.
       - name: Restore DB cache
         uses: actions/cache/restore@v4
         with:
@@ -46,4 +52,3 @@ jobs:
         with:
           path: trend_radar.db
           key: trend-radar-db-${{ github.run_id }}-${{ github.run_attempt }}
-
