@@ -10,6 +10,7 @@ import os
 import re
 import sqlite3
 from datetime import datetime, timezone
+from urllib.parse import urlsplit, urlunsplit
 
 import config
 import ai_ranker
@@ -73,8 +74,21 @@ def get_db():
     return conn
 
 
+def _dedupe_by_url(items: list[dict]) -> list[dict]:
+    """Keep the first source's item when multiple feeds expose the same URL."""
+    unique = {}
+    for item in items:
+        url = item.get("url", "").strip()
+        if not url:
+            continue
+        parts = urlsplit(url)
+        key = urlunsplit((parts.scheme.lower(), parts.netloc.lower(), parts.path, parts.query, ""))
+        unique.setdefault(key, item)
+    return list(unique.values())
+
+
 def collect_all() -> list[dict]:
-    """Pull from every enabled source and return a flat list of raw items."""
+    """Pull from every enabled source and remove same-URL duplicates per run."""
     raw_items = []
 
     if config.ENABLE_HACKERNEWS:
@@ -93,8 +107,9 @@ def collect_all() -> list[dict]:
         print("Fetching RSS feeds...")
         raw_items += rss_feeds.fetch(config.RSS_FEEDS)
 
-    print(f"Collected {len(raw_items)} raw items across all sources.")
-    return raw_items
+    unique_items = _dedupe_by_url(raw_items)
+    print(f"Collected {len(raw_items)} raw items; {len(unique_items)} unique URLs.")
+    return unique_items
 
 
 def is_breakout(new_score: int, notified_at_score: int) -> bool:
