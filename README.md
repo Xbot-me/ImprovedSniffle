@@ -81,7 +81,7 @@ Send the pending digest and process Telegram Save-button callbacks:
 python notify_telegram.py
 ```
 
-Run the collector before the notifier. The collector initializes the database schema; the notifier expects that schema to exist. The current schema setup uses `CREATE TABLE IF NOT EXISTS`, not versioned migrations, so an older database may need a deliberate migration before upgrading. If Telegram credentials are missing, the notifier prints the messages it would send rather than delivering them.
+Run the collector before the notifier. The collector initializes the database schema and adds known missing columns to older `items` tables before creating indexes. Existing rows are preserved; keep a backup before upgrading any important database. If Telegram credentials are missing, the notifier prints the messages it would send rather than delivering them.
 
 ## GitHub Actions
 
@@ -122,7 +122,7 @@ For an item that has already been notified, StackScout compares its current enga
 - The GitHub query finds recently created repositories with enough stars; it can miss older projects that are newly gaining attention.
 - Multiple feeds can surface the same underlying content.
 - GitHub Actions cache is not durable storage.
-- The project does not currently provide a test suite or a persistent hosted service.
+- The regression suite currently covers AI retry behavior, relevance refresh, and legacy-schema migration.
 
 ## Contributing
 
