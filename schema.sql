@@ -1,6 +1,5 @@
--- v2 schema. If you already deployed v1 and have a live trend_radar.db,
--- delete/clear it once (or clear the GitHub Actions cache) before this
--- version runs, since new columns aren't auto-migrated from v1.
+-- Current SQLite schema. collector.py adds known missing columns to older
+-- items tables before executing this file, preserving existing rows.
 
 CREATE TABLE IF NOT EXISTS items (
     id TEXT PRIMARY KEY,          -- stable hash of url (or source-specific id)
