@@ -78,6 +78,16 @@ class CollectorRegressionTests(unittest.TestCase):
         ).fetchone()
         self.assertEqual(row, (1, "python", "Python dashboard"))
 
+    def test_duplicate_feed_urls_keep_first_source_item(self):
+        items = [
+            {"id": "hn-1", "source": "hackernews", "url": "https://Example.com/story#comments"},
+            {"id": "rss-1", "source": "rss:feed", "url": "https://example.com/story"},
+            {"id": "rss-2", "source": "rss:feed", "url": "https://example.com/other"},
+        ]
+
+        unique = collector._dedupe_by_url(items)
+        self.assertEqual([item["id"] for item in unique], ["hn-1", "rss-2"])
+
     def test_old_schema_is_upgraded_without_losing_rows(self):
         self.conn.close()
         legacy = sqlite3.connect(self.db_path)
