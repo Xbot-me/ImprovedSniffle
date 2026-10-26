@@ -93,7 +93,7 @@ Add these repository Actions secrets:
 - `TELEGRAM_CHAT_ID`
 - `GEMINI_API_KEY` (optional)
 
-The workflow uses GitHub Actions cache to carry the SQLite database between runs. Cache storage is best-effort, not a durable database: cache eviction, overlapping runs, or a missing cache can affect history and duplicate prevention. For reliable long-term state, use persistent storage instead.
+The workflow serializes runs and uses GitHub Actions cache to carry the SQLite database between them. Cache storage is best-effort, not a durable database: cache eviction or a missing cache can affect history and duplicate prevention. For reliable long-term state, use persistent storage instead.
 
 ## How breakout detection works
 
@@ -108,6 +108,8 @@ For an item that has already been notified, StackScout compares its current enga
 ├── ai_ranker.py              # Optional Gemini explanations
 ├── config.py                 # Sources, keywords, and runtime settings
 ├── schema.sql                # SQLite schema
+├── tests/
+│   └── test_collector.py
 └── sources/
     ├── hackernews.py
     ├── github_trending.py
