@@ -81,7 +81,7 @@ Send the pending digest and process Telegram Save-button callbacks:
 python notify_telegram.py
 ```
 
-Run the collector before the notifier. The collector initializes the database schema; the notifier expects that schema to exist. If Telegram credentials are missing, the notifier prints the messages it would send rather than delivering them.
+Run the collector before the notifier. The collector initializes the database schema; the notifier expects that schema to exist. The current schema setup uses `CREATE TABLE IF NOT EXISTS`, not versioned migrations, so an older database may need a deliberate migration before upgrading. If Telegram credentials are missing, the notifier prints the messages it would send rather than delivering them.
 
 ## GitHub Actions
 
