@@ -1,304 +1,133 @@
-# 🔭 StackScout — AI-Powered Developer Intelligence Agent
+# StackScout
 
-StackScout is an AI-powered technology trend monitoring system that discovers what's gaining attention across **Hacker News, GitHub, Dev.to, and RSS feeds**, analyzes relevance against your personal technology stack, detects breakout trends, and delivers high-signal developer insights directly to Telegram.
+StackScout collects developer content from Hacker News, GitHub, Dev.to, and configured RSS feeds, scores it against a list of technology interests, and sends selected items to Telegram. Gemini-generated context is optional.
 
-Instead of endlessly scrolling through tech news, StackScout helps developers, founders, and engineers discover **important emerging technologies, tools, frameworks, and industry movements before they become mainstream**.
+The project is a small Python application backed by SQLite. It is intended for personal use and can be run locally or on a schedule with GitHub Actions.
 
-> Find what is trending. Understand why it matters. Save ideas worth building.
+## What it does
 
----
+- Fetches stories, repositories, articles, and RSS entries from enabled sources.
+- Matches titles against keywords in `config.py`.
+- Stores items in SQLite so previously seen items can be recognized.
+- Flags previously notified items when their engagement score rises enough to meet the configured breakout thresholds.
+- Optionally asks Gemini for a short, personalized note about selected items.
+- Sends a ranked Telegram digest with a Save button.
 
-## ✨ Features
+Relevance scoring is currently keyword overlap, not semantic search. GitHub discovery uses recently created repositories sorted by stars; it is a practical proxy for trending projects, not a reproduction of GitHub's Trending page.
 
-### 🔎 Multi-Source Trend Collection
+## Data sources
 
-Automatically collects trending developer content from:
+| Source | Collection method | Score used |
+| --- | --- | --- |
+| Hacker News | Official Firebase-backed API | Story score |
+| GitHub | Repository Search API | Stars |
+| Dev.to | Public articles API | Public reactions |
+| RSS/Atom | Configured feeds parsed by Feedparser | No engagement score |
 
-- 📰 Hacker News
-- 🐙 GitHub Trending / GitHub Search API
-- ✍️ Dev.to
-- 📡 Custom RSS feeds
+Sources can be enabled or disabled in `config.py`. The default RSS list includes Hacker News and Dev.to feeds as well, so the same story may appear through more than one source under different IDs.
 
-No paid APIs required.
+## Requirements
 
----
-
-### 🎯 Personalized Technology Matching
-
-StackScout scores content based on your own interests and technology stack.
-
-```python
-STACK_KEYWORDS = [
-    "golang",
-    "docker",
-    "kubernetes",
-    "llm",
-    "ai agents",
-    "react",
-    "postgres"
-]
-```
-
-A trending Kubernetes article or AI agent framework receives a higher relevance score than unrelated news.
-
----
-
-### 🚀 Breakout Trend Detection
-
-Detects when previously discovered content suddenly gains momentum.
-
-```
-🚀 BREAKOUT
-
-Project:
-New open-source AI agent framework
-
-Why:
-Score increased by 70%
-GitHub stars accelerating
-High developer engagement
-```
-
-Velocity detection helps identify technologies that are rapidly gaining adoption.
-
----
-
-### 🤖 AI-Powered Trend Explanations
-
-Optional Gemini-powered analysis generates a short explanation of *"why does this matter to you?"*
-
-```
-LangGraph update
-
-AI Angle:
-"This could simplify building production-ready AI agent
-workflows using your existing Python stack."
-```
-
-Uses efficient Gemini Flash-Lite models to minimize cost.
-
----
-
-### 📲 Telegram Intelligence Feed
-
-Receive personalized trend alerts directly in Telegram.
-
-- Ranked trend notifications
-- One-click save button
-- Duplicate prevention
-- Persistent history
-- Automated scheduled updates
-
-```
-🔥 AI Agent Framework Trending
-
-Score: 92/100
-
-Why:
-Matches your AI + Go interests
-
-💾 Save
-```
-
----
-
-## 🏗️ Architecture
-
-```mermaid
-flowchart TD
-    A[Data Sources] --> B[Trend Collector]
-    A1[Hacker News] --> A
-    A2[GitHub] --> A
-    A3[Dev.to] --> A
-    A4[RSS Feeds] --> A
-    B --> C[Relevance Scoring]
-    C --> D[Velocity Detection]
-    D --> E[AI Analysis - Optional]
-    E --> F[Telegram Alerts]
-```
-
----
-
-## Why StackScout?
-
-The internet produces thousands of developer updates every day. Most tools answer *"what happened?"*
-
-StackScout answers *"what is gaining momentum, and why should I care?"*
-
-It helps you:
-
-- Discover new technologies
-- Find open-source projects early
-- Track developer ecosystem changes
-- Generate content ideas
-- Identify startup opportunities
-- Stay ahead of engineering trends
-
----
-
-## 🚀 Installation
-
-### 1. Create a Telegram Bot
-
-1. Open Telegram
-2. Message `@BotFather`
-3. Run:
-   ```
-   /newbot
-   ```
-4. Copy your bot token
-5. Send any message to your new bot
-6. Open:
-   ```
-   https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates
-   ```
-7. Copy your chat ID
-
-### 2. Set Up Gemini AI (Optional)
-
-Create a Gemini API key from Google AI Studio.
-
-If you don't want AI explanations:
-
-```python
-ENABLE_AI_ANGLES = False
-```
-
-StackScout works without AI.
-
-### 3. Local Setup
-
-Clone the repository:
-
-```bash
-git clone https://github.com/Xbot-me/ImprovedSniffle.git
-cd ImprovedSniffle
-```
+- Python 3.10 or newer
+- A Telegram bot and chat ID for delivery
+- A Gemini API key only if AI angles are wanted
 
 Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/Xbot-me/ImprovedSniffle.git
+cd ImprovedSniffle
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
 
-Configure environment variables:
+On Windows, activate the environment with `.venv\\Scripts\\activate`.
+
+## Configuration
+
+Set credentials as environment variables rather than putting secrets in source files:
 
 ```bash
-export TELEGRAM_BOT_TOKEN="your-token"
+export TELEGRAM_BOT_TOKEN="your-telegram-bot-token"
 export TELEGRAM_CHAT_ID="your-chat-id"
-export GEMINI_API_KEY="your-key"
+export GEMINI_API_KEY="your-gemini-api-key"  # optional
 ```
 
-Run the collector:
+Create a Telegram bot through [@BotFather](https://t.me/BotFather). To find your chat ID, message the bot and inspect the updates returned by Telegram's Bot API. Treat the bot token as a password; do not publish a URL containing it.
+
+Optional configuration is in `config.py`, including:
+
+- `STACK_KEYWORDS`: terms used to score item titles
+- `RSS_FEEDS`: RSS/Atom feed URLs
+- `ENABLE_HACKERNEWS`, `ENABLE_GITHUB_TRENDING`, `ENABLE_DEVTO`, `ENABLE_RSS`: source switches
+- `DIGEST_TOP_N`: maximum number of items selected for a digest
+- `VELOCITY_GROWTH_THRESHOLD` and `VELOCITY_MIN_ABSOLUTE_DELTA`: breakout thresholds
+- `ENABLE_AI_ANGLES`, `GEMINI_MODEL`, and `AI_ANGLE_CANDIDATE_COUNT`: optional AI settings
+
+The default database path is `trend_radar.db`. Override it with `DB_PATH` if needed.
+
+## Run it
+
+Collect items and update the SQLite database:
 
 ```bash
 python collector.py
 ```
 
-Send notifications:
+Send the pending digest and process Telegram Save-button callbacks:
 
 ```bash
 python notify_telegram.py
 ```
 
----
+Run the collector before the notifier. The collector initializes the database schema; the notifier expects that schema to exist. If Telegram credentials are missing, the notifier prints the messages it would send rather than delivering them.
 
-## ☁️ Automated Deployment with GitHub Actions
+## GitHub Actions
 
-StackScout can run completely serverless using GitHub Actions.
+The workflow at `.github/workflows/trend-radar.yml` runs every four hours and can also be started manually from the Actions tab.
 
-```mermaid
-flowchart LR
-    A[Every 4 hours] --> B[GitHub Actions]
-    B --> C[Collect trends]
-    C --> D[Analyze scores]
-    D --> E[Generate AI insights]
-    E --> F[Send Telegram alerts]
-```
+Add these repository Actions secrets:
 
-Required GitHub Secrets:
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
+- `GEMINI_API_KEY` (optional)
 
-```
-TELEGRAM_BOT_TOKEN
-TELEGRAM_CHAT_ID
-GEMINI_API_KEY
-```
+The workflow uses GitHub Actions cache to carry the SQLite database between runs. Cache storage is best-effort, not a durable database: cache eviction, overlapping runs, or a missing cache can affect history and duplicate prevention. For reliable long-term state, use persistent storage instead.
 
-SQLite data persistence is handled through GitHub Actions caching.
+## How breakout detection works
 
----
+For an item that has already been notified, StackScout compares its current engagement score with the score recorded at its last notification. A breakout is flagged only when the increase meets both the configured absolute-delta threshold and percentage-growth threshold. This is a simple heuristic; it does not measure a true time-series growth rate.
 
-## ⚙️ Configuration
+## Project layout
 
-Customize your intelligence feed:
-
-**Technology Stack Keywords** — edit `config.py`:
-
-```python
-STACK_KEYWORDS = [
-    "AI",
-    "LLM",
-    "Go",
-    "Docker",
-    "React",
-    "Cloud",
-    "Open Source"
-]
-```
-
-**RSS Sources** — add your favorite feeds:
-
-```python
-RSS_FEEDS = [
-    "https://example.com/feed"
-]
-```
-
-**Trend Velocity Settings** — control breakout detection:
-
-```
-VELOCITY_GROWTH_THRESHOLD
-VELOCITY_MIN_ABSOLUTE_DELTA
-```
-
----
-
-## 📁 Project Structure
-
-```
-stackscout/
-├── collector.py          # Fetches, scores and stores trends
-├── notify_telegram.py    # Sends ranked notifications
-├── config.py             # Keywords and source configuration
-├── schema.sql             # SQLite database schema
+```text
+.
+├── collector.py              # Fetch, score, and store items
+├── notify_telegram.py        # Send Telegram messages and handle Save callbacks
+├── ai_ranker.py              # Optional Gemini explanations
+├── config.py                 # Sources, keywords, and runtime settings
+├── schema.sql                # SQLite schema
 └── sources/
-    ├── hackernews.py      # Hacker News API integration
-    ├── github_trending.py # GitHub trend collection
-    ├── devto.py           # Dev.to integration
-    └── rss_feeds.py       # RSS/Atom feed collector
+    ├── hackernews.py
+    ├── github_trending.py
+    ├── devto.py
+    └── rss_feeds.py
 ```
 
----
+## Current limitations
 
-## 🛣️ Roadmap
+- Keyword matching only examines titles; it does not understand the full article or repository.
+- RSS items have no engagement score, so they are primarily ranked by keyword relevance.
+- The GitHub query finds recently created repositories with enough stars; it can miss older projects that are newly gaining attention.
+- Multiple feeds can surface the same underlying content.
+- GitHub Actions cache is not durable storage.
+- The project does not currently provide a test suite or a persistent hosted service.
 
-Future versions may include:
+## Contributing
 
-- AI-generated technical summaries
-- Automatic blog post generation
-- LinkedIn/X content creation
-- Startup idea detection
-- Personalized newsletters
-- Web dashboard
-- More data sources
-- Multi-user support
+Bug reports and focused improvements are welcome. For changes to collection or notification behavior, include a reproduction or test where practical.
 
----
+## License
 
-## 🤝 Contributing
-
-Contributions are welcome. Ideas, improvements, new data sources, and AI workflows are encouraged.
-
-## 📄 License
-
-MIT License
+MIT. See [LICENSE](LICENSE) if present in the repository.
