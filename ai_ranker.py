@@ -16,7 +16,7 @@ GEMINI_URL = (
 
 
 def _build_prompt(items: list[dict]) -> str:
-    numbered = "\\n".join(
+    numbered = "\n".join(
         f"{i}. [{item['source']}] {item['title']}"
         for i, item in enumerate(items)
     )
@@ -41,11 +41,11 @@ One object per item above, in the same order.
 def _extract_json(text: str) -> str:
     """Extract a JSON array, including when wrapped in markdown fences."""
     text = text.strip()
-    match = re.search(r"\\[.*\\]", text, re.DOTALL)
+    match = re.search(r"\[.*\]", text, re.DOTALL)
     if match:
         return match.group(0)
-    text = re.sub(r"^```(?:json)?\\s*", "", text)
-    text = re.sub(r"\\s*```$", "", text)
+    text = re.sub(r"^```(?:json)?\s*", "", text)
+    text = re.sub(r"\s*```$", "", text)
     return text.strip()
 
 
