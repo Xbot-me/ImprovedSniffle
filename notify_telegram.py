@@ -123,7 +123,7 @@ def format_item_message(item: sqlite3.Row) -> str:
     lines.append(f"<i>{source} · score {item['engagement_score']}</i>")
     if matched:
         lines.append(f"Matches: {matched}")
-    if ai_angle and ai_angle != "N/A":
+    if ai_angle and ai_angle not in {"N/A", "No clear angle"}:
         lines.append(f"💡 {ai_angle}")
     return "\n".join(lines)
 
